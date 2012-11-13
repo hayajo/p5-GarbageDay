@@ -133,9 +133,9 @@ The following methods construct new GarbageDay objects:
       '!*-02-*' => '枝葉・草',
   });
 
-  Create a new object.
+Create a new object.
 
-  This method can take properties. see L<"PROPERTIES">.
+This method can take properties. see L<"PROPERTIES">.
 
 =head1 PROPERTIES
 

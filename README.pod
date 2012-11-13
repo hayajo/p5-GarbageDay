@@ -56,13 +56,13 @@ The following methods construct new GarbageDay objects:
       '!*-02-*' => '枝葉・草',
   });
 
-  Create a new object.
+Create a new object.
 
-  This method can take properties. see L<"PROPERTIES">.
+This method can take properties. see L<"PROPERTIES">.
 
 =head1 PROPERTIES
 
-=head2 <schedule>
+=head2 C<schedule>
 
 schedule of garbage day as Hashref.
 
@@ -129,6 +129,8 @@ schedule of garbage day as Hashref.
   };
 
 =head2 excludes
+
+add a "!" At the beginning.
 
   my $schedule = {
       '!*-01-01' => '*',
