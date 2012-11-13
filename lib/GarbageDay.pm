@@ -84,7 +84,7 @@ GarbageDay - What can you dump garbage today ?
 =head1 SYNOPSIS
 
   use GarbageDay;
-  my $td = GarbageDay->new( schedule => {
+  my $gd = GarbageDay->new( schedule => {
       'Mon' => '燃やすごみ',
       'Wed' => [
                   '燃やすごみ',
@@ -103,7 +103,7 @@ GarbageDay - What can you dump garbage today ?
   });
 
   use Data::Dumper;
-  say Dumper( $td->can_dump() );
+  say Dumper( $gd->can_dump() );
 
 =head1 DESCRIPTION
 
@@ -115,7 +115,7 @@ The following methods construct new GarbageDay objects:
 
 =head2 C<new>
 
-  my $td = GarbageDay->new( schedule => {
+  my $gd = GarbageDay->new( schedule => {
       'Mon' => '燃やすごみ',
       'Wed' => [
                   '燃やすごみ',
@@ -133,9 +133,9 @@ The following methods construct new GarbageDay objects:
       '!*-02-*' => '枝葉・草',
   });
 
-  Create a new object.
+Create a new object.
 
-  This method can take properties. see L<"PROPERTIES">.
+This method can take properties. see L<"PROPERTIES">.
 
 =head1 PROPERTIES
 
@@ -160,6 +160,7 @@ schedule of garbage day as Hashref.
       '!*-01-03' => '*',
       '!*-02-*' => '枝葉・草',
   };
+  my $gd = GarbageDay->new( schedule => $schedule );
 
 =head3 every week
 
@@ -171,7 +172,7 @@ schedule of garbage day as Hashref.
               ],
   };
 
-=head2 week of month
+=head3 week of month
 
   my $schedule = {
       'Thu-2' => '古紙類',
@@ -181,31 +182,31 @@ schedule of garbage day as Hashref.
                   ],
   };
 
-=head2 date
+=head3 date
 
   my $schedule = {
       '2012-01-04' => '燃やすゴミ',
   };
 
-=head2 every year
+=head3 every year
 
   my $schedule = {
       '*-12-31' => '燃やすゴミ',
   };
 
-=head2 every month
+=head3 every month
 
   my $schedule = {
       '*-*-01' => '燃やすゴミ',
   };
 
-=head2 every day
+=head3 every day
 
   my $schedule = {
       '*-*-*' => '燃やすゴミ',
   };
 
-=head2 excludes
+=head3 excludes
 
 add a "!" At the beginning.
 
@@ -221,8 +222,8 @@ add a "!" At the beginning.
 
 =head2 C<can_dump>
 
-  say Dumper( $td->can_dump() ); # today
-  say Dumper( $td->can_dump('2012-05-03') );
+  say Dumper( $gd->can_dump() ); # today
+  say Dumper( $gd->can_dump('2012-05-03') );
 
 get list of "What can I dump garbage ?".
 
