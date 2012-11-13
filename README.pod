@@ -1,0 +1,161 @@
+=encoding utf8
+
+=head1 NAME
+
+GarbageDay - What can you dump garbage today ?
+
+=head1 SYNOPSIS
+
+  use GarbageDay;
+  my $td = GarbageDay->new( schedule => {
+      'Mon' => '燃やすごみ',
+      'Wed' => [
+                  '燃やすごみ',
+                  '枝葉・草'
+              ],
+      'Thu-2' => '古紙類',
+      'Sat-4' => [
+                  '燃やさないごみ',
+                  'ペットボトル'
+                  ],
+      '*-12-31' => '燃やすごみ',
+      '!*-01-01' => '*',
+      '!*-01-02' => '*',
+      '!*-01-03' => '*',
+      '!*-02-*' => '枝葉・草',
+  });
+
+  use Data::Dumper;
+  say Dumper( $td->can_dump() );
+
+=head1 DESCRIPTION
+
+GarbageDay is life-hack module to know "What can I dump garbage today ?"
+
+=head1 CONSTRUCTORS
+
+The following methods construct new GarbageDay objects:
+
+=head2 C<new>
+
+  my $td = GarbageDay->new( schedule => {
+      'Mon' => '燃やすごみ',
+      'Wed' => [
+                  '燃やすごみ',
+                  '枝葉・草'
+              ],
+      'Thu-2' => '古紙類',
+      'Sat-4' => [
+                  '燃やさないごみ',
+                  'ペットボトル'
+                  ],
+      '*-12-31' => '燃やすごみ',
+      '!*-01-01' => '*',
+      '!*-01-02' => '*',
+      '!*-01-03' => '*',
+      '!*-02-*' => '枝葉・草',
+  });
+
+  Create a new object.
+
+  This method can take properties. see L<"PROPERTIES">.
+
+=head1 PROPERTIES
+
+=head2 <schedule>
+
+schedule of garbage day as Hashref.
+
+  my $schedule = {
+      'Mon' => '燃やすごみ',
+      'Wed' => [
+                  '燃やすごみ',
+                  '枝葉・草'
+              ],
+      'Thu-2' => '古紙類',
+      'Sat-4' => [
+                  '燃やさないごみ',
+                  'ペットボトル'
+                  ],
+      '*-12-31' => '燃やすごみ',
+      '!*-01-01' => '*',
+      '!*-01-02' => '*',
+      '!*-01-03' => '*',
+      '!*-02-*' => '枝葉・草',
+  };
+
+=head3 every week
+
+  my $schedule = {
+      'Mon' => '燃やすごみ',
+      'Wed' => [
+                  '燃やすごみ',
+                  '枝葉・草'
+              ],
+  };
+
+=head2 week of month
+
+  my $schedule = {
+      'Thu-2' => '古紙類',
+      'Sat-4' => [
+                  '燃やさないごみ',
+                  'ペットボトル'
+                  ],
+  };
+
+=head2 date
+
+  my $schedule = {
+      '2012-01-04' => '燃やすゴミ',
+  };
+
+=head2 every year
+
+  my $schedule = {
+      '*-12-31' => '燃やすゴミ',
+  };
+
+=head2 every month
+
+  my $schedule = {
+      '*-*-01' => '燃やすゴミ',
+  };
+
+=head2 every day
+
+  my $schedule = {
+      '*-*-*' => '燃やすゴミ',
+  };
+
+=head2 excludes
+
+  my $schedule = {
+      '!*-01-01' => '*',
+      '!*-01-02' => '*',
+      '!*-01-03' => '*',
+      '!*-02-*'  => '枝葉・草',
+      '!*-03-*'  => '枝葉・草',
+  };
+
+=head1 METHODS
+
+=head2 C<can_dump>
+
+  say Dumper( $td->can_dump() ); # today
+  say Dumper( $td->can_dump('2012-05-03') );
+
+get list of "What can I dump garbage ?".
+
+=head1 AUTHOR
+
+hayajo E<lt>hayajo@cpan.orgE<gt>
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+
+=cut
+

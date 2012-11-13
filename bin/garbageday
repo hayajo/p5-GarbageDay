@@ -1,0 +1,229 @@
+#!/usr/bin/env perl
+use 5.10.0;
+use utf8;
+use strict;
+use warnings;
+
+use GarbageDay;
+use Getopt::Long qw{ :config posix_default no_ignore_case gnu_compat };
+use YAML qw{ LoadFile };
+use Encode qw{ encode_utf8 };
+
+use constant WDAYNAME => [qw/日 月 火 水 木 金 土/];
+
+my $opts = +{};
+GetOptions( $opts, qw{ h|help d|date=s e|email=s k|imkayac=s c|config=s } ) or help();
+help() if ( ! @ARGV || $opts->{h} );
+main( \@ARGV, $opts );
+
+sub main {
+    my ( $args, $opts ) = @_;
+
+    my $schedule = LoadFile( $args->[0] ) or die "load fialed: $!";
+    my $td = GarbageDay->new( schedule => $schedule );
+
+    my ( $list, $time ) = $td->can_dump( $opts->{d} );
+    exit unless @$list;
+
+    my $message = sprintf(
+        "%d月%d日(%s)　%s",
+        $time->mon, $time->mday, $time->wdayname( @{ WDAYNAME() } ),
+        join( '、', @$list )
+    );
+
+    my $output = 1;
+    my $conf   = ( $opts->{c} ) ? LoadFile( $opts->{c} ) : +{};
+
+    if ( my $to = $opts->{e} ) {
+        my $opts = $conf->{email} || +{};
+        send_email( $to, $message, %$opts  );
+        $output = 0;
+    }
+    if ( my $username = $opts->{k} ) {
+        my $opts = $conf->{imkayac} || +{};
+        imkayac_post( $username, $message, %$opts );
+        $output = 0;
+    }
+
+    say encode_utf8($message) if $output;
+}
+
+sub help { exec "perldoc $0" }
+
+sub send_email {
+    my $to      = shift || return;
+    my $message = shift || '';
+    my $opts    = {@_};
+    my $from    = delete $opts->{from}    || 'noreply@garbageday.example.com';
+    my $subject = delete $opts->{subject} || "[GarbageDay] $message";
+    require Email::Send;
+    require Email::MIME;
+    my $sender = Email::Send->new($opts);
+    my $email  = Email::MIME->create(
+        header => [
+            From    => $from,
+            To      => $to,
+            Subject => Encode::encode( 'MIME-Header-ISO_2022_JP', $subject ),
+        ],
+        attributes => {
+            charset  => 'iso-2022-jp',
+            encoding => '7bit',
+        },
+        body_str => $message,
+    );
+    $sender->send($email) or die 'send() failed';
+}
+
+sub imkayac_post {
+    my $username = shift || return;
+    my $message  = shift || '';
+    my $opts     = { @_ };
+    require Digest::SHA1;
+    require LWP::UserAgent;
+    my $params = { message => $message };
+    if ( my $secret_key = $opts->{secret_key} ) {
+        $params->{sig} = Digest::SHA1::sha1_hex($message . $secret_key);
+    }
+    if ( my $password = $opts->{password} ) {
+        $params->{password} = $password;
+    }
+    if ( my $handler = $opts->{handler} ) {
+        $params->{handler} = $handler;
+    }
+    my $ua = LWP::UserAgent->new(timeout => 5, agent => "GarbageDay/$GarbageDay::VERSION");
+    my $res = $ua->post("http://im.kayac.com/api/post/$username", $params);
+    $res->is_success or die $res->status_line;
+}
+
+__DATA__
+
+=encoding utf8
+
+=head1 NAME
+
+garbageday - What can you dump garbage today ?
+
+=head1 SYNOPSIS
+
+  $ garbageday /path/to/schedule/your_municipality.yml
+  1月11日(水)　枝葉・草、燃やすゴミ
+
+cronとかで適当にまわしてください。
+
+=head1 DESCRIPTION
+
+garbageday is a notifier "What can you dump garbage today ?".
+
+=head1 OPTIONS
+
+L<garbageday> supports the following options.
+
+=head2 C<-d|--date>
+
+date as "YYYY-MM-DD" (default: today)
+
+  $ garbageday -d 2012-12-01 /path/to/schedule/your_municipality.yml
+
+=head2 C<-e|--email>
+
+notify to email
+
+  $ garbageday -e username@example.com /path/to/schedule/your_municipality.yml
+
+=head2 C<-k|--imkayac>
+
+notify to imkayac
+
+  $ garbageday -k username schedule.yml
+
+=head2 C<-c|--config>
+
+/path/to/config.yml
+
+  $ garbageday -e username@example.com -k username -c conf/config.yml /path/to/schedule/your_municipality.yml
+
+e.g.) config.yml
+
+  email:
+    mailer: 'SMTP'
+    mailer_args:
+      - host
+      - mx.example.com
+      - timeout
+      - 10
+      - debug
+      - 1
+  imkayac:
+    secret_key: "my secret key"
+
+=head1 SCHEDULE
+
+supports YAML.
+
+  Wed:
+    - 燃やすゴミ
+    - 枝葉・草
+
+  Sat-4:
+    - 燃やさないゴミ
+    - ペットボトル
+
+  2012-01-04: 燃やすゴミ
+  "*-12-31": 燃やすゴミ
+
+  "!*-01-01": '*'
+  "!*-01-02": '*'
+  "!*-01-03": '*'
+  "!*-02-*": 枝葉・草
+  "!*-03-*": 枝葉・草
+
+=head2 every week
+
+  Wed:
+    - 燃やすゴミ
+    - 枝葉・草
+
+=head2 week of month
+
+  Sat-4:
+    - 燃やさないゴミ
+    - ペットボトル
+
+=head2 date
+
+  2012-01-04: 燃やすゴミ
+
+=head2 every year
+
+  "*-12-31": 燃やすゴミ
+
+=head2 every month
+
+  "*-*-01": 燃やすゴミ
+
+=head2 every day
+
+  "*-*-*": 燃やすゴミ
+
+=head2 excludes
+
+add a "!" At the beginning.
+
+  "!*-01-01": '*'
+  "!*-01-02": '*'
+  "!*-01-03": '*'
+  "!*-02-*": 枝葉・草
+  "!*-03-*": 枝葉・草
+
+=head1 AUTHOR
+
+hayajo E<lt>hayajo@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<http://im.kayac.com>
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
