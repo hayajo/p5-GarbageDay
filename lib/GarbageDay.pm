@@ -10,7 +10,11 @@ BEGIN {
     *{'Time::Piece::week_of_month'} = sub {
         my $self = shift;
         return int( ( $self->mday - ( $self->day_of_week + 1 ) + 13 ) / 7 );
-    }
+    };
+    *{'Time::Piece::weekday_of_month'} = sub {
+        my $self = shift;
+        return int( ( $self->mday + 6 ) / 7 );
+    };
 }
 
 use Any::Moose;
@@ -36,9 +40,9 @@ sub can_dump {
     my $m      = sprintf( '%02d', $t->mon );
     my $d      = sprintf( '%02d', $t->mday );
     my $wday   = $t->wdayname;
-    my $wom    = $t->week_of_month;
+    my $wdom   = $t->weekday_of_month;
     my $r_date = "($y|\\*)-($m|\\*)-($d|\\*)";
-    my $r_wday = "$wday(-$wom)?";
+    my $r_wday = "$wday(-$wdom)?";
     my $regex  = qr/^(!)?\s*($r_date|$r_wday)$/i;
 
     my $garbage      = +{};

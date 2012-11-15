@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use GarbageDay;
 use YAML;
 
@@ -11,6 +11,21 @@ my $schedule = Load( do { local $/; <DATA> } );
 
 my $gd = new_ok( 'GarbageDay' => [ schedule => $schedule ] );
 is_deeply $gd->schedule, $schedule;
+
+subtest 'weekday_of_month' => sub {
+    my $date = {
+        '2012-01-30' => [ 5, 5 ],
+        '2012-02-06' => [ 2, 1 ],
+        '2012-02-20' => [ 4, 3 ],
+        '2012-03-05' => [ 2, 1 ],
+    };
+    for my $d ( keys %$date ) {
+        my (undef, $t) = $gd->can_dump($d);
+        is_deeply
+            [ $t->week_of_month, $t->weekday_of_month ],
+            $date->{$d};
+    }
+};
 
 subtest 'date' => sub {
     my $date = '2012-01-09'; # Wed

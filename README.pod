@@ -133,8 +133,6 @@ schedule of garbage day as Hashref.
 
 add a "!" At the beginning.
 
-add a "!" At the beginning.
-
   my $schedule = {
       '!*-01-01' => '*',
       '!*-01-02' => '*',
